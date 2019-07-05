@@ -22,7 +22,7 @@ Installation
 `githubv4` requires Go version 1.8 or later.
 
 ```bash
-go get -u github.com/shurcooL/githubv4
+go get -u github.com/djoksimo/githubv4
 ```
 
 Usage
@@ -400,7 +400,7 @@ Directories
 
 | Path                                                                                      | Synopsis                                                                            |
 |-------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| [example/githubv4dev](https://godoc.org/github.com/shurcooL/githubv4/example/githubv4dev) | githubv4dev is a test program currently being used for developing githubv4 package. |
+| [example/githubv4dev](https://godoc.org/github.com/djoksimo/githubv4/example/githubv4dev) | githubv4dev is a test program currently being used for developing githubv4 package. |
 
 License
 -------
