@@ -67,7 +67,7 @@ func getMediaTypes(publicSchema string) []string {
 	re := regexp.MustCompile(`@preview\(toggledBy: \"(?P<media>[a-z-]+)-preview\"\)`)
 	matches := getRegexMatches(publicSchema, re)
 	mediaTypes := make([]string, 0)
-	for k, _ := range matches {
+	for k := range matches {
 		mediaTypes = append(mediaTypes, k)
 	}
 	return mediaTypes
