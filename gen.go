@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -19,27 +20,6 @@ import (
 
 	"github.com/shurcooL/graphql/ident"
 )
-
-// schemaPreviews is a list of features that are available during the GitHub API Preview Period
-// Check https://developer.github.com/changes/ for updates
-var schemaPreviews = []string{
-	"audit-log",
-	"flash",
-	"shadow-cat",
-	"antiope",
-	"echo",
-	"hagar",
-	"merge-info",
-	"hawkgirl",
-	"vixen",
-	"daredevil",
-	"starfox",
-	"queen-beryl",
-	"corsair",
-	"elektra",
-	"bane",
-	"slothette",
-}
 
 func parseArgs(previewMode *bool) {
 	flag.BoolVar(previewMode, "p", false, "Allows generation of schema previews https://developer.github.com/v4/previews")
@@ -55,18 +35,66 @@ func main() {
 	previewMode := false
 	parseArgs(&previewMode)
 
-	err := run(previewMode)
+	const githubPublicSchema = "https://developer.github.com/v4/public_schema/schema.public.graphql"
+	publicSchema, err := getPublicSchema(githubPublicSchema)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	mediaTypes := getMediaTypes(publicSchema)
+
+	err = run(previewMode, mediaTypes)
 	if err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func run(previewMode bool) error {
+func getPublicSchema(fileUrl string) (string, error) {
+	resp, err := http.Get(fileUrl)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
+// getMediaTypes returns a list of header values that enable access to the GitHub API Preview Period features
+// Check https://developer.github.com/changes/ for updates
+func getMediaTypes(publicSchema string) []string {
+	re := regexp.MustCompile(`@preview\(toggledBy: \"(?P<media>[a-z-]+)-preview\"\)`)
+	matches := getRegexMatches(publicSchema, re)
+	mediaTypes := make([]string, 0)
+	for k := range matches {
+		mediaTypes = append(mediaTypes, k)
+	}
+	return mediaTypes
+}
+
+func getRegexMatches(publicSchema string, re *regexp.Regexp) map[string]bool {
+	groupNames := re.SubexpNames()
+	matches := make(map[string]bool)
+
+	for _, match := range re.FindAllStringSubmatch(publicSchema, -1) {
+		for groupIndex, group := range match {
+			name := groupNames[groupIndex]
+			if name == "" || matches[group] {
+				continue
+			}
+			matches[group] = true
+		}
+	}
+	return matches
+}
+
+func run(previewMode bool, mediaTypes []string) error {
 	githubToken, ok := os.LookupEnv("GITHUB_TOKEN")
 	if !ok {
 		return fmt.Errorf("GITHUB_TOKEN environment variable not set")
 	}
-	schema, err := loadSchema(githubToken, previewMode)
+	schema, err := loadSchema(githubToken, previewMode, mediaTypes)
 	if err != nil {
 		return err
 	}
@@ -92,14 +120,14 @@ func run(previewMode bool) error {
 	return nil
 }
 
-func loadSchema(githubToken string, previewMode bool) (schema interface{}, err error) {
+func loadSchema(githubToken string, previewMode bool, mediaTypes []string) (schema interface{}, err error) {
 	req, err := http.NewRequest("GET", "https://api.github.com/graphql", nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "bearer "+githubToken)
 	if previewMode {
-		for _, sp := range schemaPreviews {
+		for _, sp := range mediaTypes {
 			req.Header.Add("Accept", fmt.Sprintf("application/vnd.github.%s-preview+json", sp))
 		}
 	}
