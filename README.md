@@ -1,7 +1,7 @@
 githubv4
 ========
 
-[![Build Status](https://travis-ci.org/shurcooL/githubv4.svg?branch=master)](https://travis-ci.org/shurcooL/githubv4) [![GoDoc](https://godoc.org/github.com/shurcooL/githubv4?status.svg)](https://godoc.org/github.com/shurcooL/githubv4)
+[![Build Status](https://travis-ci.org/djoksimo/githubv4.svg?branch=master)](https://travis-ci.org/djoksimo/githubv4) [![GoDoc](https://godoc.org/github.com/shurcooL/githubv4?status.svg)](https://godoc.org/github.com/shurcooL/githubv4)
 
 Package `githubv4` is a client library for accessing GitHub GraphQL API v4 (https://developer.github.com/v4/).
 
